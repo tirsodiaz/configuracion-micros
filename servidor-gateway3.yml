@@ -1,0 +1,51 @@
+server:
+  port: 7000
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            # Para HTML externo (file:// → Origin: null) en tus pruebas
+            allowedOrigins:
+              - "null"
+            allowedMethods: [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ]
+            allowedHeaders: [ "*" ]
+            allowCredentials: false
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+      routes:
+        - id: serv-reservas
+          uri: lb://servicio-reservas
+          predicates:
+            - Path=/sreservas/**
+          filters:
+            - StripPrefix=1
+        
+        - id: serv-vuelos
+          #lb:// cuando se va a acceder a traves de Eureka
+          uri: lb://servicio-vuelos #http://localhost:11000
+          predicates:
+            - Path=/svuelos/**
+          filters:
+            - StripPrefix=1
+        
+        - id: serv-hoteles
+          #lb:// cuando se va a acceder a traves de Eureka
+          uri: lb://servicio-hoteles #http://localhost:8000
+          predicates:
+            - Path=/shoteles/**
+          filters:
+            - StripPrefix=1 #o bien RewritePath=/shoteles(?<segment>/.*), ${segment} si 2.5+
+
+
+eureka:                  
+  client:
+   serviceUrl:
+     defaultZone: http://localhost:8761/eureka
+
+#eureka.instance.preferIpAddress: true
+#instance:
+   #preferIpAddress: true
+
